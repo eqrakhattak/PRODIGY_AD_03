@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -10,7 +11,34 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
 
-  final stopwatch = Stopwatch();
+  final Stopwatch stopwatch = Stopwatch();
+  late Timer timer;
+  String result = '00:00:00';
+
+  void _start() {
+    // Timer.periodic() will call the callback function every 100 milliseconds
+    timer = Timer.periodic(const Duration(milliseconds: 30), (Timer t) {
+      setState(() {
+        // result in hh:mm:ss format
+        result = '${stopwatch.elapsed.inMinutes.toString().padLeft(2, '0')}:${(stopwatch.elapsed.inSeconds % 60).toString().padLeft(2, '0')}:${(stopwatch.elapsed.inMilliseconds % 100).toString().padLeft(2, '0')}';
+      });
+    });
+
+    stopwatch.start();
+  }
+
+  void _stop() {
+    timer.cancel();
+    stopwatch.stop();
+  }
+
+  void _reset() {
+    _stop();
+    stopwatch.reset();
+    result = '00:00:00';
+
+    setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,6 +53,7 @@ class _MyHomePageState extends State<MyHomePage> {
               'Stopwatch',
               style: Theme.of(context).textTheme.headlineMedium?.copyWith(color: Colors.white),
             ),
+            const SizedBox(height: 2,),
             Stack(
               children: [
                 Center(
@@ -40,7 +69,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
                 Center(
                   child: Text(
-                    '${stopwatch.elapsedMilliseconds}',
+                    result,
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 30,
@@ -49,6 +78,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
               ],
             ),
+            const SizedBox(height: 10,),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
@@ -66,7 +96,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 FloatingActionButton(
                   onPressed: () {
                     setState(() {
-                      stopwatch.isRunning ? stopwatch.stop() : stopwatch.start();
+                      stopwatch.isRunning ? _stop() : _start();
                     });
                   },
                   tooltip: 'Play / Pause',
@@ -78,12 +108,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                 ),
                 IconButton(
-                  onPressed: () {
-                    setState(() {
-                      stopwatch.stop();
-                      stopwatch.reset();
-                    });
-                  },
+                  onPressed: _reset,
                   tooltip: 'reset',
                   icon: const Icon(
                     CupertinoIcons.repeat,
